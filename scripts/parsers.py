@@ -216,4 +216,29 @@ def parse_directory(directory: str | None = None) -> Dict[str, Any]:
         all_courses.extend(d["courses"])
         for k, v in d["totals"].items():
             agg_totals[k] += v
-    return {"courses": all_courses, "totals": dict(agg_totals)} 
+    return {"courses": all_courses, "totals": dict(agg_totals)}
+
+# ---------------------------------------------------------------------------
+# 6. BACKWARD-COMPAT HELPERS FOR FASTAPI BACKEND
+# ---------------------------------------------------------------------------
+
+def parse_context_files(directory: str | None = None) -> Dict[str, Any]:
+    """Return the richer dict structure the existing FastAPI layer expects.
+
+    Because the revamped parser focuses on courses & credit totals (and we don't yet
+    extract program-requirement rows), we leave the `requirements` list empty for
+    now so the backend will gracefully fall back to SAMPLE_REQUIREMENTS.
+    """
+    directory = directory or DATA_DIR
+    parsed = parse_directory(directory)
+
+    total_files = len([f for f in os.listdir(directory) if f.lower().endswith((".pdf", ".rtf"))])
+
+    return {
+        "courses": parsed["courses"],
+        "requirements": [],  # TODO: implement real requirement parsing
+        "parse_results": [],
+        "total_files_processed": total_files,
+        "total_courses_found": len(parsed["courses"]),
+        "total_requirements_found": 0,
+    } 

@@ -6,7 +6,7 @@ import os
 import json
 from striprtf.striprtf import rtf_to_text
 import tempfile
-from parsers import parse_context_files
+from scripts.parsers import parse_context_files
 import re
 
 app = FastAPI(
