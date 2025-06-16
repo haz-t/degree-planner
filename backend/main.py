@@ -27,13 +27,18 @@ app.add_middleware(
 # Pydantic models
 class Course(BaseModel):
     code: str
-    name: str
+    title: str
     credits: int
-    description: str
-    prerequisites: List[str] = []
-    corequisites: List[str] = []
-    semester_offered: List[str] = []
-    school: str  # "UTS" or "Columbia"
+    professor: str | None = None
+    schedule: list[str] | str | None = None
+    description: str | None = None
+    fields: list[str] = []
+    # Legacy keys kept optional for backwards compatibility
+    name: str | None = None
+    prerequisites: List[str] | None = None
+    corequisites: List[str] | None = None
+    semester_offered: List[str] | None = None
+    school: str | None = None
 
 class Requirement(BaseModel):
     name: str
@@ -125,9 +130,12 @@ load_context_data()
 SAMPLE_COURSES = [
     {
         "code": "BIBL101",
+        "title": "Introduction to Biblical Studies",
         "name": "Introduction to Biblical Studies",
         "credits": 3,
         "description": "Foundational course in biblical interpretation and analysis",
+        "professor": "Dr. Smith",
+        "schedule": ["Fall"],
         "prerequisites": [],
         "corequisites": [],
         "semester_offered": ["Fall", "Spring"],
@@ -135,9 +143,12 @@ SAMPLE_COURSES = [
     },
     {
         "code": "THEO201",
+        "title": "Systematic Theology",
         "name": "Systematic Theology",
         "credits": 3,
         "description": "Study of theological doctrines and systematic approaches",
+        "professor": "Dr. Johnson",
+        "schedule": ["Spring"],
         "prerequisites": ["BIBL101"],
         "corequisites": [],
         "semester_offered": ["Spring"],
@@ -145,9 +156,12 @@ SAMPLE_COURSES = [
     },
     {
         "code": "SW501",
+        "title": "Social Work Practice I",
         "name": "Social Work Practice I",
         "credits": 3,
         "description": "Introduction to social work practice and methods",
+        "professor": "Prof. Lee",
+        "schedule": ["Fall", "Spring"],
         "prerequisites": [],
         "corequisites": [],
         "semester_offered": ["Fall", "Spring"],
@@ -182,20 +196,47 @@ async def health_check():
 
 @app.get("/courses", response_model=List[Course])
 async def get_courses():
-    """Get all available courses"""
-    # Use parsed data if available, otherwise fall back to sample data
-    courses_data = PARSED_DATA.get("courses", []) if PARSED_DATA.get("courses") else SAMPLE_COURSES
-    return [Course(**course) for course in courses_data]
+    """Get all available courses with enriched metadata and requirement buckets"""
+    # Source course/raw requirement data (parsed or sample)
+    raw_courses = PARSED_DATA.get("courses", []) if PARSED_DATA.get("courses") else SAMPLE_COURSES
+    raw_requirements = PARSED_DATA.get("requirements", []) if PARSED_DATA.get("requirements") else SAMPLE_REQUIREMENTS
+
+    # Build mapping of course_code -> [requirement names]
+    requirement_map: Dict[str, List[str]] = {}
+    for req in raw_requirements:
+        for code in req.get("courses", []):
+            requirement_map.setdefault(code, []).append(req.get("name", ""))
+
+    transformed: List[Course] = []
+    for course in raw_courses:
+        transformed.append(
+            Course(
+                code=course.get("code"),
+                title=course.get("title") or course.get("name"),
+                credits=course.get("credits", 0),
+                professor=course.get("professor"),
+                schedule=course.get("schedule") or course.get("semester_offered"),
+                description=course.get("description", ""),
+                fields=requirement_map.get(course.get("code"), []),
+                # legacy fields
+                name=course.get("name"),
+                prerequisites=course.get("prerequisites"),
+                corequisites=course.get("corequisites"),
+                semester_offered=course.get("semester_offered"),
+                school=course.get("school"),
+            )
+        )
+
+    return transformed
 
 @app.get("/courses/{course_code}", response_model=Course)
 async def get_course(course_code: str):
-    """Get a specific course by code"""
-    # Use parsed data if available, otherwise fall back to sample data
-    courses_data = PARSED_DATA.get("courses", []) if PARSED_DATA.get("courses") else SAMPLE_COURSES
-    
-    for course in courses_data:
-        if course["code"] == course_code:
-            return Course(**course)
+    """Get a specific course by code with the enriched structure"""
+    # Re-use the logic from get_courses
+    all_courses = await get_courses()
+    for course in all_courses:
+        if course.code == course_code:
+            return course
     raise HTTPException(status_code=404, detail="Course not found")
 
 @app.get("/requirements", response_model=List[Requirement])

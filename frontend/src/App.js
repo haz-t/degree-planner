@@ -21,7 +21,7 @@ import {
 } from '@mui/icons-material';
 
 import { fetchCourses, fetchRequirements, getParseStatus } from './utils/api';
-import CourseList from './components/CourseList';
+import CourseCatalog from './components/CourseCatalog';
 import RequirementList from './components/RequirementList';
 import DegreePlan from './components/DegreePlan';
 import RTFParser from './components/RTFParser';
@@ -164,7 +164,7 @@ function App() {
 
           <Box sx={{ p: 3 }}>
             {activeTab === 0 && (
-              <CourseList
+              <CourseCatalog
                 courses={courses}
                 onDataRefresh={handleDataRefresh}
               />
