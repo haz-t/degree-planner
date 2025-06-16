@@ -7,6 +7,8 @@ import pandas as pd
 import os
 from typing import List, Dict
 import tempfile
+import re
+import uuid
 
 from models import Course, Requirement, Plan
 from parsers import parse_all_data
@@ -218,35 +220,6 @@ st.markdown("""
     .stSidebar .stHeader {
         color: #fff !important;
     }
-    .stSidebar .stTextInput > div > input {
-        background: #232a34 !important;
-        color: #f3f6fa !important;
-    }
-    .stSidebar .stSelectbox > div > div {
-        background: #232a34 !important;
-        color: #f3f6fa !important;
-    }
-    .stSidebar .stCheckbox > label {
-        color: #b6c2e2 !important;
-    }
-    .stSidebar .stMetric {
-        background: #232a34 !important;
-        color: #f3f6fa !important;
-    }
-    .stSidebar .stDivider {
-        border-color: #23272f !important;
-    }
-    .stSidebar .stExpander > div > div > div > div {
-        background: #232a34 !important;
-        border-radius: 10px !important;
-        border: 1px solid #23272f !important;
-    }
-    .stSidebar .stSubheader {
-        color: #b6c2e2 !important;
-    }
-    .stSidebar .stHeader {
-        color: #fff !important;
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -284,6 +257,9 @@ def render_course_card(course: Course, plan: Plan, courses: List[Course], tab_co
     """Render a course as an expandable card"""
     course_lookup = {c.id: c for c in courses}
     
+    # Guarantee a unique context suffix for Streamlit widget keys
+    unique_context = tab_context if tab_context else uuid.uuid4().hex[:8]
+    
     # Check if course is in plan
     is_selected = any(course.id in semester_courses for semester_courses in plan.selections.values())
     
@@ -308,18 +284,18 @@ def render_course_card(course: Course, plan: Plan, courses: List[Course], tab_co
             semester = st.selectbox(
                 "Add to semester:",
                 ["Fall 2025", "Spring 2026"],
-                key=f"semester_{course.id}_{tab_context}",
+                key=f"semester_{course.id}_{unique_context}",
                 index=0 if course.semester == "Fall 2025" else 1
             )
             
             # Add/Remove button
             if is_selected:
-                if st.button("Remove from Plan", key=f"remove_{course.id}_{tab_context}"):
+                if st.button("Remove from Plan", key=f"remove_{course.id}_{unique_context}"):
                     plan.remove_course(semester, course.id)
                     save_user_plan(plan)
                     st.rerun()
             else:
-                if st.button("Add to Plan", key=f"add_{course.id}_{tab_context}"):
+                if st.button("Add to Plan", key=f"add_{course.id}_{unique_context}"):
                     plan.add_course(semester, course.id)
                     save_user_plan(plan)
                     st.rerun()

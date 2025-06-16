@@ -38,7 +38,7 @@ class Course(BaseModel):
 class Requirement(BaseModel):
     name: str
     description: str
-    credits_required: int
+    credits_required: int | None = None
     courses: List[str] = []
     sub_requirements: List['Requirement'] = []
 
