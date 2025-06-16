@@ -247,35 +247,6 @@ st.markdown("""
     .stSidebar .stHeader {
         color: #fff !important;
     }
-    .stSidebar .stTextInput > div > input {
-        background: #232a34 !important;
-        color: #f3f6fa !important;
-    }
-    .stSidebar .stSelectbox > div > div {
-        background: #232a34 !important;
-        color: #f3f6fa !important;
-    }
-    .stSidebar .stCheckbox > label {
-        color: #b6c2e2 !important;
-    }
-    .stSidebar .stMetric {
-        background: #232a34 !important;
-        color: #f3f6fa !important;
-    }
-    .stSidebar .stDivider {
-        border-color: #23272f !important;
-    }
-    .stSidebar .stExpander > div > div > div > div {
-        background: #232a34 !important;
-        border-radius: 10px !important;
-        border: 1px solid #23272f !important;
-    }
-    .stSidebar .stSubheader {
-        color: #b6c2e2 !important;
-    }
-    .stSidebar .stHeader {
-        color: #fff !important;
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -460,8 +431,8 @@ def main():
         if not fall_courses:
             st.info("No courses found for Fall 2025.")
         else:
-            for course in fall_courses:
-                render_course_card(course, plan, courses, tab_context="fall2025")
+            for idx, course in enumerate(fall_courses):
+                render_course_card(course, plan, courses, tab_context=f"fall2025_{idx}")
     
     # Spring 2026 Tab
     with tab2:
@@ -471,8 +442,8 @@ def main():
         if not spring_courses:
             st.info("No courses found for Spring 2026.")
         else:
-            for course in spring_courses:
-                render_course_card(course, plan, courses, tab_context="spring2026")
+            for idx, course in enumerate(spring_courses):
+                render_course_card(course, plan, courses, tab_context=f"spring2026_{idx}")
     
     # All Courses Tab
     with tab3:
@@ -505,8 +476,8 @@ def main():
         if not display_courses:
             st.info("No courses match the current filters.")
         else:
-            for course in display_courses:
-                render_course_card(course, plan, courses, tab_context="allcourses")
+            for idx, course in enumerate(display_courses):
+                render_course_card(course, plan, courses, tab_context=f"all_{idx}")
     
     # Plan summary and actions
     st.divider()
