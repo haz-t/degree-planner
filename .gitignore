@@ -1,0 +1,33 @@
+# Python caches
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# Virtual environment folders
+.venv/
+venv/
+
+# Node modules
+node_modules/
+
+# Front-end build artifacts
+frontend/build/
+
+# Streamlit
+.streamlit/
+
+# General build / dist artifacts
+dist/
+build/
+*.log
+
+# Data files (raw PDFs, context dumps, optional)
+_context/
+backend/_context/
+plans/
+
+# OS / editor files
+.DS_Store
+.env 
